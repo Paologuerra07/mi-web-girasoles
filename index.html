@@ -209,6 +209,11 @@ body{
     height: 18px;
   }
 }
+@media (max-width: 768px) {
+  .flower {
+    transform: scale(0.7); /* reduce el tamaño en celulares */
+  }
+}
 
 </style>
 </head>
@@ -270,7 +275,6 @@ body{
 
     <!-- central messages -->
     <div style="position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:90;text-align:center">
-      <h2 id="mainMessage" class="mainMsg" style="margin:0;font-size:2rem;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.35)">"La primavera lleva la fragancia de un corazón que se abre, la promesa de la vida que se renueva y la certeza de que, después de cada invierno, siempre hay una flor esperando florecer."🌻✨</h2>
     </div>
 
     <!-- <div class="hint" aria-hidden="false">Consejo: pulsa 🔀 para reacomodar las flores • activa/pausa la música 🔔</div> -->
@@ -290,7 +294,8 @@ body{
    ============================================ */
 
 /* ---------- Config ---------- */
-const FLOWER_COUNT = 6;             // número de flores en el jardín
+/* ---------- Config ---------- */
+let FLOWER_COUNT = window.innerWidth < 768 ? 4 : 12;  // menos flores en celular
 const MIN_SCALE = 0.74, MAX_SCALE = 1.18;
 const PETAL_FALL_ON_START = true;
 let petalsOn = true;
@@ -723,5 +728,6 @@ window._startAudio = ()=>{ initAudio(); playAmbient(); document.getElementById('
 </script>
 </body>
 </html>
+
 
 
