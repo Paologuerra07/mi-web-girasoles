@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Primavera • Jardín Animado 🌻</title>
+<style>
+/* ----------------- ROOT / COLORS ----------------- */
+:root{
+  --bg-sky-1: #cfeefd;
+  --bg-sky-2: #87d2f2;
+  --grass-1: #2e8b57;
+  --grass-2: #3fc56b;
+  --petal: #ffd54a;
+  --center: #5d4037;
+  --panel: rgba(255,255,255,0.92);
+  --accent: #fff7e6;
+  --text: #123335;
+  --muted: rgba(0,0,0,0.45);
+  --glass: rgba(255,255,255,0.18);
+}
+
+/* ---------- Base / Layout ---------- */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family: "Quicksand", "Trebuchet MS", system-ui, -apple-system; color:var(--text)}
+body{
+  background: linear-gradient(to top, var(--grass-1) 24%, var(--bg-sky-1) 50%, var(--bg-sky-2) 100%);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* ---------- Intro Screen ---------- */
+#intro{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3));
+  z-index:120;backdrop-filter: blur(4px);
+}
+.intro-card{
+  width:min(980px,92%); padding:26px;border-radius:14px; background:var(--panel);
+  box-shadow:0 12px 40px rgba(10,30,10,0.12); text-align:center;
+}
+.intro-card h1{font-size:2.2rem;margin:0 0 .2rem}
+.intro-card p{margin:.4rem 0 1.1rem;color:var(--muted);font-size:1.05rem}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{
+  background: linear-gradient(90deg,#ffe76b,#ffd12b); border:0; padding:10px 18px;
+  border-radius:12px; font-weight:700; cursor:pointer; box-shadow:0 8px 20px rgba(255,170,0,0.12);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.btn:hover{transform:translateY(-3px); box-shadow:0 14px 30px rgba(255,170,0,0.18)}
+.small{padding:8px 12px;font-size:.95rem}
+.muted{color:var(--muted);font-size:.95rem}
+
+/* ---------- Top control panel ---------- */
+.controls{
+  position:fixed; top:14px; left:18px; z-index:100; display:flex; gap:8px; align-items:center;
+  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.75));
+  padding:8px 10px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.07);
+}
+.icon{
+  background:transparent;border:0;padding:6px 8px;border-radius:8px;cursor:pointer;font-weight:700;
+}
+
+/* ---------- Scene container ---------- */
+#scene{position:fixed;inset:0;overflow:hidden}
+
+/* sun */
+.sun{
+  position:absolute; right:44px; top:26px; width:110px; height:110px; border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #fff59d, #ffb300 60%);
+  box-shadow:0 0 70px rgba(255,190,0,0.25);
+  z-index:20;
+}
+.sun .rays{position:absolute; inset:-30px; border-radius:50%; opacity:.55; animation:spin 22s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* clouds */
+.cloud{position:absolute;background:#fff;border-radius:70px;box-shadow:0 8px 30px rgba(0,0,0,0.06);opacity:.94}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud.large{width:260px;height:78px}
+.cloud.med{width:180px;height:58px}
+.cloud.small{width:120px;height:46px}
+.cloud::before{width:110px;height:110px;left:-40px;top:-36px}
+.cloud::after{width:84px;height:84px;right:-32px;top:-28px}
+
+/* birds (simple triangles) */
+.bird{position:absolute;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:12px solid rgba(255,255,255,0.9);opacity:.9; transform-origin:center;}
+
+/* ---------- Grass ---------- */
+.grass{
+  position:absolute;left:0;right:0;bottom:0;height:220px;background:linear-gradient(to top,var(--grass-1),var(--grass-2));
+  z-index:8; box-shadow:inset 0 22px 60px rgba(0,0,0,0.06)
+}
+.grass-layer{position:absolute;left:0;right:0;bottom:90px;height:120px;background:linear-gradient(to top, rgba(255,255,255,0.02), transparent)}
+
+/* ---------- Flowers component ---------- */
+.flower{
+  position:absolute; bottom:68px; width:140px; height:200px; pointer-events:auto; transform-origin:50% 100%;
+  transition: transform .14s ease, filter .12s ease;
+  z-index:10;
+}
+.flower:hover{filter:brightness(1.06);transform:translateY(-6px)}
+/* stem & leaves */
+.flower .stem{
+  position:absolute; left:66px; bottom:0; width:10px; height:110px;border-radius:6px;
+  background:linear-gradient(to bottom,#3aa24b,#1b632a); box-shadow: inset -2px 6px 8px rgba(0,0,0,.06)
+}
+.leaves{position:absolute; left:42px; bottom:34px; width:80px; height:52px}
+.leaf{position:absolute;background:linear-gradient(135deg,#2f8b3a,#1d5c27); width:40px;height:18px;border-radius:18px;box-shadow:0 6px 10px rgba(0,0,0,.07)}
+.leaf.l1{left:-8px;transform:rotate(-24deg);top:4px}
+.leaf.l2{left:44px;transform:rotate(22deg);top:6px}
+
+/* petals disk */
+.disk{position:absolute; width:120px; height:120px; left:10px; top:-38px; pointer-events:none}
+.pet{
+  position:absolute; width:36px; height:60px; border-radius:50%;
+  background: radial-gradient(circle at 30% 20%, #fff2a8,#ffd54a 45%, #f6c02b 100%);
+  left:46px; top:6px; transform-origin:50% 80%; box-shadow:0 8px 18px rgba(0,0,0,0.06)
+}
+.core{
+  position:absolute; left:46px; top:36px; width:36px; height:36px; border-radius:50%;
+  background: radial-gradient(circle at 35% 30%, #3e2b25, #5c3f30); box-shadow: inset -4px -2px 6px rgba(0,0,0,0.2);
+}
+
+/* petal rotations - 12 petals around */
+.pet:nth-child(1){transform:rotate(0deg) translateY(-20px)}
+.pet:nth-child(2){transform:rotate(30deg) translateY(-20px)}
+.pet:nth-child(3){transform:rotate(60deg) translateY(-20px)}
+.pet:nth-child(4){transform:rotate(90deg) translateY(-20px)}
+.pet:nth-child(5){transform:rotate(120deg) translateY(-20px)}
+.pet:nth-child(6){transform:rotate(150deg) translateY(-20px)}
+.pet:nth-child(7){transform:rotate(180deg) translateY(-20px)}
+.pet:nth-child(8){transform:rotate(210deg) translateY(-20px)}
+.pet:nth-child(9){transform:rotate(240deg) translateY(-20px)}
+.pet:nth-child(10){transform:rotate(270deg) translateY(-20px)}
+.pet:nth-child(11){transform:rotate(300deg) translateY(-20px)}
+.pet:nth-child(12){transform:rotate(330deg) translateY(-20px)}
+
+/* clickable pulse */
+.flower:active{transform:scale(0.98) translateY(-3px)}
+
+/* ---------- insects ---------- */
+.bee{
+  position:absolute; width:32px; height:20px; border-radius:50%; background:linear-gradient(90deg,#ffd94a,#ffd100); border:2px solid #222; z-index:30;
+  box-shadow:0 8px 18px rgba(0,0,0,0.08);
+}
+.bee .wing{position:absolute; width:12px; height:10px; top:-6px; border-radius:50%; background:rgba(255,255,255,0.95)}
+.butterfly{position:absolute;width:26px;height:22px; z-index:30}
+.butterfly .wingA,.butterfly .wingB{position:absolute;width:12px;height:18px;border-radius:50%; background:linear-gradient(180deg,#ffd6a8,#ffb86c);}
+
+/* ---------- petals falling ---------- */
+.petal-fall{position:absolute;width:12px;height:18px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%; background:var(--petal); z-index:40; opacity:0.95}
+
+/* ---------- toast messages ---------- */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:140px;background:rgba(255,255,255,0.98);padding:10px 16px;border-radius:12px;box-shadow:0 12px 32px rgba(10,30,10,0.12);z-index:150; font-weight:700}
+
+/* ---------- hint & signature ---------- */
+.hint{position:fixed;left:18px;bottom:18px;background:rgba(0,0,0,0.18);color:#fff;padding:8px 12px;border-radius:10px;font-size:.95rem;z-index:110}
+.signature{position:fixed;right:18px;bottom:12px;color:#fff;font-style:italic;font-size:1rem;text-shadow:0 1px 6px rgba(0,0,0,0.4);z-index:110}
+
+/* ---------- night mode adjustments ---------- */
+.night{background:linear-gradient(to top,#0b2b3b 18%, #06243a 58%); color:#dfefff}
+.night .sun{opacity:0.25; filter:blur(1px)}
+.night .cloud{opacity:0.35}
+.night .grass{background:linear-gradient(to top,#083a21,#134a2b)}
+.night .mainMsg{color:#dfefff; text-shadow:0 6px 20px rgba(0,0,0,.6)}
+
+/* responsive */
+@media (max-width:760px){
+  .intro-card h1{font-size:1.6rem}
+  .flower{width:110px;height:160px}
+  .sun{right:12px;top:10px;width:76px;height:76px}
+  .controls{left:8px; top:8px}
+  .signature{font-size:.92rem; right:8px; bottom:8px}
+}
+</style>
+</head>
+<body>
+  <!-- Intro screen -->
+  <div id="intro" role="dialog" aria-modal="true" aria-label="Bienvenida primavera">
+    <div class="intro-card" role="document">
+      <h1>🌸¡Bienvenida la Primavera - Un detalle que nunca olvidaras ✨!</h1>
+      <p>La estación de las flores llegó. ¿Estás lista para pasear por un jardincito lleno de girasoles?</p>
+      <div class="row">
+        <button class="btn" onclick="handleAnswer('si')">Sí, lista 🌞</button>
+        <button class="btn" onclick="handleAnswer('no')">No, todavía 😅</button>
+        <button class="btn small" onclick="surprise()">Sorpresa ✨</button>
+      </div>
+      <div id="reply" class="muted" aria-live="polite" style="min-height:1.2rem;margin-top:12px"></div>
+      <!--<p class="muted" style="margin-top:10px">Interactúa con las flores cuando aparezca el jardín — escucha la música y prueba las opciones arriba.</p> -->
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls" role="toolbar" aria-label="Controles">
+    <button class="icon" id="playBtn" title="Reproducir/pausar música">🔔</button>
+    <button class="icon" id="shuffleBtn" title="Barajar flores">🔀</button>
+    <button class="icon" id="petalToggle" title="Activar/ocultar pétalos">🌼</button>
+    <button class="icon" id="fallToggle" title="Pétalos cayendo">🍃</button>
+    <button class="icon" id="nightBtn" title="Modo noche">🌙</button>
+    <div style="padding-left:6px;color:#2b5;font-weight:700">Acciones</div>
+  </div>
+
+  <!-- Scene -->
+  <div id="scene" aria-hidden="true">
+    <div class="sun" aria-hidden="true"><div class="rays"></div></div>
+
+    <div class="cloud large" id="cloud1" style="top:36px; left:-420px"></div>
+    <div class="cloud med" id="cloud2" style="top:96px; left:-280px"></div>
+    <div class="cloud small" id="cloud3" style="top:56px; left:-180px"></div>
+
+    <!-- birds -->
+    <div class="bird" id="bird1" style="top:60px; left:-40px; transform:rotate(18deg)"></div>
+
+    <!-- dynamic flowers container -->
+    <div id="flowersContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- bugs -->
+    <div id="bugs">
+      <div class="bee" id="bee1" style="left:40px; top:140px"><div class="wing"></div></div>
+      <div class="bee" id="bee2" style="left:280px; top:200px"><div class="wing"></div></div>
+      <div class="butterfly" id="but1" style="left:160px; top:120px">
+        <div class="wingA" style="left:0; transform:rotate(-28deg)"></div>
+        <div class="wingB" style="right:0; transform:rotate(28deg)"></div>
+      </div>
+    </div>
+
+    <!-- petals layer -->
+    <div id="petalsLayer" aria-hidden="true"></div>
+
+    <div class="grass"></div>
+    <div class="grass-layer"></div>
+
+    <!-- central messages -->
+    <div style="position:fixed;left:50%;transform:translateX(-50%);top:18px;z-index:90;text-align:center">
+      <h2 id="mainMessage" class="mainMsg" style="margin:0;font-size:2rem;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.35)">"La primavera lleva la fragancia de un corazón que se abre, la promesa de la vida que se renueva y la certeza de que, después de cada invierno, siempre hay una flor esperando florecer."🌻✨</h2>
+    </div>
+
+    <!-- <div class="hint" aria-hidden="false">Consejo: pulsa 🔀 para reacomodar las flores • activa/pausa la música 🔔</div> -->
+    <div class="signature" id="signature">Creado con cariño por Alejandro G.T.</div>
+  </div>
+
+  <!-- Toast container (dynamic) -->
+  <div id="toastRoot" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+/* ============================================
+   Professional single-file garden app
+   - Many flowers distributed (no images)
+   - Interactions, animation, audio (WebAudio)
+   - Controls: shuffle, toggle petals, fall, night, sound
+   - Toasts and microinteractions
+   ============================================ */
+
+/* ---------- Config ---------- */
+const FLOWER_COUNT = 20;             // número de flores en el jardín
+const MIN_SCALE = 0.74, MAX_SCALE = 1.18;
+const PETAL_FALL_ON_START = true;
+let petalsOn = true;
+let fallingOn = PETAL_FALL_ON_START;
+let nightMode = false;
+let audioPlaying = false;
+
+/* ---------- Util ---------- */
+const rand = (a,b)=> Math.random()*(b-a)+a;
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+function showToast(txt, time=2200){
+  const root = document.getElementById('toastRoot');
+  const t = document.createElement('div'); t.className='toast'; t.textContent=txt;
+  root.appendChild(t);
+  setTimeout(()=> t.style.opacity='0', time-300);
+  setTimeout(()=> t.remove(), time);
+}
+
+/* ---------- Flower builder ---------- */
+const flowersContainer = document.getElementById('flowersContainer');
+
+function makeFlower(i, leftPct, bottomPx, scale, swayDur){
+  const f = document.createElement('div'); f.className='flower'; f.dataset.id=i;
+  f.style.left = leftPct + '%';
+  f.style.bottom = bottomPx + 'px';
+  f.style.transform = `scale(${scale})`;
+
+  // create dynamic sway keyframes unique name
+  const name = `sway_f_${i}`;
+  const sheet = document.styleSheets[0];
+  const kf = `@keyframes ${name}{0%{transform:scale(${scale}) rotate(${ -rand(2,6)}deg)}50%{transform:scale(${scale}) rotate(${ rand(2,6)}deg)}100%{transform:scale(${scale}) rotate(${ -rand(2,6)}deg)}}`;
+  try{ sheet.insertRule(kf, sheet.cssRules.length); }catch(e){/* ignore */ }
+  f.style.animation = `${name} ${swayDur}s ease-in-out infinite`;
+
+  // stem
+  const stem = document.createElement('div'); stem.className='stem';
+  f.appendChild(stem);
+
+  // leaves
+  const leaves = document.createElement('div'); leaves.className='leaves';
+  const l1 = document.createElement('div'); l1.className='leaf l1';
+  const l2 = document.createElement('div'); l2.className='leaf l2';
+  leaves.appendChild(l1); leaves.appendChild(l2);
+  f.appendChild(leaves);
+
+  // disk (petals)
+  const disk = document.createElement('div'); disk.className='disk';
+  for(let p=0;p<12;p++){
+    const pet = document.createElement('div'); pet.className='pet';
+    if(!petalsOn) pet.style.opacity='0';
+    disk.appendChild(pet);
+  }
+  const core = document.createElement('div'); core.className='core';
+  disk.appendChild(core);
+  f.appendChild(disk);
+
+  // interactions
+  f.addEventListener('mouseenter', ()=> { f.style.filter='brightness(1.06)'; });
+  f.addEventListener('mouseleave', ()=> { f.style.filter='brightness(1)'; });
+  f.addEventListener('click', ()=> {
+    onFlowerClick(i,f);
+  });
+
+  flowersContainer.appendChild(f);
+  return f;
+}
+
+/* layout nicely distributed */
+function layoutFlowers(count=FLOWER_COUNT){
+  flowersContainer.innerHTML='';
+  const w = window.innerWidth;
+  for(let i=0;i<count;i++){
+    // distribute across 6/7 zones with random jitter
+    const left = (i/(count-1))*88 + rand(-4,4);  // pct
+    const bottom = rand(40,110); // px bottom
+    const scale = rand(MIN_SCALE, MAX_SCALE);
+    const swayDur = rand(3.2,5.6);
+    makeFlower(i+1, left, bottom, scale, swayDur);
+  }
+}
+
+/* ---------- flower click handler ---------- */
+const flowerMessages = [
+  "Gracias por florecer hoy 🌻",
+  "Que tengas un día brillante ☀️",
+  "Pequeña alegría para ti 🌼",
+  "Tu sonrisa ilumina como el sol ☀️",
+  "Un abrazo de primavera 🤗",
+  "Sigue brillando, siempre 🌟",
+  "Que los días te sonrían 🌿",
+  "Una flor para tu alma ✨"
+];
+function onFlowerClick(id, el){
+  const msg = pick(flowerMessages);
+  showToast(msg, 2200);
+  // play a tiny chime
+  playClickTone();
+  // quick pulse scale
+  el.style.transition = 'transform .12s ease';
+  const prev = el.style.transform;
+  el.style.transform = prev + ' scale(1.06)';
+  setTimeout(()=> el.style.transform = prev, 260);
+}
+
+/* ---------- Bugs animation (bees & butterflies) ---------- */
+function moveElementAlong(el, points, duration, offset=0){
+  let start=null;
+  function step(ts){
+    if(!start) start=ts;
+    const t = ((ts - start + offset)%duration)/duration; // 0..1
+    // simple piecewise linear interpolation
+    const n = points.length;
+    const idx = t*(n-1);
+    const i = Math.floor(idx);
+    const f = idx - i;
+    const a = points[i];
+    const b = points[(i+1)%n];
+    const x = a[0]*(1-f)+b[0]*f;
+    const y = a[1]*(1-f)+b[1]*f;
+    el.style.left = x + 'px'; el.style.top = y + 'px';
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function animateBugs(){
+  const bee1 = document.getElementById('bee1'), bee2 = document.getElementById('bee2'), but1 = document.getElementById('but1');
+  const W = window.innerWidth, H = window.innerHeight;
+  moveElementAlong(bee1, [[50,120],[180,90],[350,160],[520,120],[700,160],[900,110],[W-120,160]], 9000, 0);
+  moveElementAlong(bee2, [[320,200],[420,160],[560,240],[740,200],[920,260],[W-260,240]], 11000, 900);
+  moveElementAlong(but1, [[160,120],[220,80],[320,110],[420,74],[560,140],[720,98],[820,120]], 9500, 300);
+  // birds: use CSS/JS mini flight for bird1
+  const bird1 = document.getElementById('bird1');
+  const birdDur = 12000;
+  moveElementAlong(bird1, [[-40,60],[180,40],[420,80],[680,30],[W+60,70]], birdDur, 200);
+}
+
+/* ---------- Clouds movement ---------- */
+function animateClouds(){
+  const c1 = document.getElementById('cloud1'), c2 = document.getElementById('cloud2'), c3 = document.getElementById('cloud3');
+  const dur1 = rand(60,90), dur2 = rand(40,70), dur3 = rand(45,80);
+  function moveCloud(c,dur,offset){
+    c.style.left = -400 + 'px';
+    setTimeout(()=> c.style.transition = `left ${dur}s linear`, 50);
+    setTimeout(()=> c.style.left = (window.innerWidth + 300) + 'px', 120);
+    c.addEventListener('transitionend', ()=>{
+      setTimeout(()=> {
+        c.style.transition='none';
+        c.style.left = -400 - Math.random()*200 + 'px';
+        setTimeout(()=> { c.style.transition = `left ${dur}s linear`; c.style.left = (window.innerWidth+300)+'px'; }, 80);
+      }, 700 + Math.random()*400);
+    });
+  }
+  moveCloud(c1,dur1); moveCloud(c2,dur2); moveCloud(c3,dur3);
+}
+
+/* ---------- Petals falling ---------- */
+let petalInterval;
+function startPetals(){
+  const layer = document.getElementById('petalsLayer');
+  if(!fallingOn) return;
+  petalInterval = setInterval(()=>{
+    const p = document.createElement('div'); p.className='petal-fall';
+    const startX = Math.random()*window.innerWidth;
+    p.style.left = startX + 'px';
+    p.style.top = (-50 - Math.random()*30) + 'px';
+    p.style.transform = `rotate(${Math.random()*360}deg)`;
+    layer.appendChild(p);
+    const dur = 5200 + Math.random()*4200;
+    const endY = window.innerHeight - 120 - Math.random()*80;
+    // Web Animation
+    p.animate([
+      { transform: p.style.transform, opacity:1 },
+      { transform: `translateY(${endY}px) rotate(${Math.random()*360}deg)`, opacity:0.95 }
+    ], {duration: dur, easing:'linear'});
+    setTimeout(()=> p.remove(), dur+50);
+  }, 340);
+}
+function stopPetals(){
+  clearInterval(petalInterval); document.getElementById('petalsLayer').innerHTML='';
+}
+
+/* ---------- Audio: ambient using WebAudio synth ---------- */
+let audioCtx, masterGain, loopOscs=[];
+function initAudio(){
+  if(audioCtx) return;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain(); 
+    masterGain.gain.value = 0.0; 
+    masterGain.connect(audioCtx.destination);
+
+    // Acordes suaves tipo campanilla
+    const baseFreqs = [261.63, 329.63, 392.00]; // C4, E4, G4
+    for(let i=0;i<3;i++){
+      const o = audioCtx.createOscillator();
+      o.type = 'sine'; // más limpio
+      o.frequency.value = baseFreqs[i];
+      const g = audioCtx.createGain(); 
+      g.gain.value = 0.05; // más bajo
+      o.connect(g); g.connect(masterGain);
+      o.start();
+      loopOscs.push({osc:o, gain:g});
+    }
+
+    // Pequeño vibrato natural
+    const lfo = audioCtx.createOscillator(); 
+    lfo.frequency.value = 0.2;
+    const lfoGain = audioCtx.createGain(); 
+    lfoGain.gain.value = 10; // rango del vibrato en Hz
+    lfo.connect(lfoGain);
+
+    loopOscs.forEach(({osc})=>{
+      lfoGain.connect(osc.frequency);
+    });
+
+    lfo.start();
+
+  }catch(e){ console.warn('Audio init failed',e) }
+}
+
+function playAmbient(){
+  if(!audioCtx) initAudio();
+  if(!audioCtx) return;
+  // ramp master gain up
+  masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.8);
+  // stagger notes: set oscillator frequencies slightly modulated
+  loopOscs.forEach((o,i)=>{
+    const det = (i-1)*7 + (Math.random()*4-2);
+    o.osc.frequency.setValueAtTime( (i===0?220: i===1?261.63:329.63) + det, audioCtx.currentTime );
+    o.gain.gain.cancelScheduledValues(audioCtx.currentTime);
+    o.gain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+    o.gain.gain.linearRampToValueAtTime(0.22 - i*0.06, audioCtx.currentTime + 1.1);
+  });
+  audioPlaying = true;
+}
+function stopAmbient(){
+  if(!audioCtx) return;
+  masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.9);
+  audioPlaying = false;
+}
+/* short click tone */
+function playClickTone(){
+  if(!audioCtx) initAudio();
+  if(!audioCtx) return;
+  const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+  o.type='sine'; o.frequency.value = 880; g.gain.value = 0;
+  o.connect(g); g.connect(audioCtx.destination);
+  g.gain.linearRampToValueAtTime(0.14, audioCtx.currentTime+0.01);
+  o.start();
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.45);
+  o.stop(audioCtx.currentTime+0.5);
+}
+
+/* ---------- Intro logic & transitions ---------- */
+function handleAnswer(opt){
+  const reply = document.getElementById('reply');
+  if(opt==='si') reply.textContent="¡Lo sabíaaa! 😍🌸";
+  else reply.textContent="Qué me importa 😏";
+  burstPetals(12);
+  setTimeout(()=> openGarden(), 1000);
+}
+function surprise(){
+  document.getElementById('reply').textContent="¡Sorpresa! Pronto verás el jardín ✨";
+  setTimeout(()=> openGarden(), 900);
+}
+function openGarden(){
+  document.getElementById('intro').style.transition='opacity .6s ease';
+  document.getElementById('intro').style.opacity='0';
+  setTimeout(()=> { document.getElementById('intro').style.display='none'; }, 650);
+  // reveal scene
+  const scene = document.getElementById('scene'); scene.style.display='block';
+  scene.setAttribute('aria-hidden','false');
+  // init features
+  layoutFlowers(FLOWER_COUNT);
+  animateBugs();
+  animateClouds();
+  if(fallingOn) startPetals();
+  // reveal main message with typewriter
+  typeText(document.getElementById('mainMessage'), " La primavera lleva la fragancia de un corazón que se abre, la promesa de la vida que se renueva y la certeza de que, después de cada invierno, siempre hay una flor esperando florecer.🌻✨", 22);
+  // subtle reveal fade
+  scene.style.opacity='0'; scene.style.transition='opacity .9s ease'; setTimeout(()=> scene.style.opacity='1', 60);
+}
+
+/* ---------- small burst effect ---------- */
+function burstPetals(n){
+  const body = document.body;
+  for(let i=0;i<n;i++){
+    const p = document.createElement('div'); p.className='petal-fall';
+    p.style.left = (window.innerWidth/2 + rand(-180,180)) + 'px';
+    p.style.top = (window.innerHeight/2 + rand(-50,50)) + 'px';
+    p.style.transform = `rotate(${rand(0,360)}deg)`;
+    body.appendChild(p);
+    const dur = 800 + Math.random()*600;
+    p.animate([{ transform: p.style.transform, opacity:1 }, { transform:`translate(${rand(-80,80)}px, ${220+rand(40,160)}px) rotate(${rand(0,360)}deg)`, opacity:0}], {duration:dur, easing:'ease-out'});
+    setTimeout(()=> p.remove(), dur+80);
+  }
+}
+
+/* ---------- Typewriter for messages ---------- */
+function typeText(el, text, speed=30){
+  el.textContent=''; let i=0;
+  const iv = setInterval(()=> { el.textContent += text[i]||''; i++; if(i>=text.length) clearInterval(iv); }, speed);
+}
+
+/* ---------- Controls binding ---------- */
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+  layoutFlowers(FLOWER_COUNT);
+  showToast('Flores reacomodadas 🌼');
+});
+document.getElementById('petalToggle').addEventListener('click', ()=>{
+  petalsOn = !petalsOn;
+  document.querySelectorAll('.pet').forEach(p => p.style.opacity = petalsOn ? '1' : '0');
+  showToast(petalsOn ? 'Pétalos visibles' : 'Pétalos ocultos');
+});
+document.getElementById('fallToggle').addEventListener('click', ()=>{
+  fallingOn = !fallingOn;
+  if(fallingOn){ startPetals(); showToast('Pétalos cayendo: ON'); } else { stopPetals(); showToast('Pétalos cayendo: OFF'); }
+});
+document.getElementById('nightBtn').addEventListener('click', ()=>{
+  nightMode = !nightMode;
+  if(nightMode){ document.body.classList.add('night'); showToast('Modo noche'); } else { document.body.classList.remove('night'); showToast('Modo día'); }
+});
+document.getElementById('playBtn').addEventListener('click', async ()=>{
+  try{
+    if(!audioCtx) initAudio();
+    if(!audioCtx) return;
+    // resume context on user gesture
+    if(audioCtx.state === 'suspended') await audioCtx.resume();
+    if(!audioPlaying){ playAmbient(); document.getElementById('playBtn').textContent='⏸'; showToast('Música: ON'); }
+    else{ stopAmbient(); document.getElementById('playBtn').textContent='🔔'; showToast('Música: OFF'); }
+  }catch(e){ console.warn(e) }
+});
+
+/* ---------- Init on load ---------- */
+window.addEventListener('load', ()=>{
+  // hide scene initially
+  document.getElementById('scene').style.display='none';
+  // signature typing effect
+  const sign = document.getElementById('signature'); sign.textContent=''; let j=0; const name = 'Hecho por alejito el pro';
+  const signIv = setInterval(()=>{ sign.textContent += name[j++]||''; if(j>=name.length) clearInterval(signIv); }, 50);
+});
+
+/* ---------- Start animations ---------- */
+function animateBugs(){ animateBugs; /* will be called later inside openGarden; function defined earlier */ }
+
+/* ---------- Kickoff helpers ---------- */
+window.addEventListener('resize', ()=>{ /* nothing heavy here */ });
+
+/* ---------- Expose layoutFlowers for immediate preview (not auto open) ---------- */
+function exposePreview(){ layoutFlowers(8); animateClouds(); animateBugs(); }
+
+/* ---------- Start helper functions definitions ---------- */
+/* Place functions in proper scope (some already used above) */
+function animateClouds(){ /* wrapper uses earlier implement */ 
+  const c1 = document.getElementById('cloud1'), c2 = document.getElementById('cloud2'), c3 = document.getElementById('cloud3');
+  const dur1 = rand(60,90), dur2 = rand(40,70), dur3 = rand(45,80);
+  [ [c1,dur1],[c2,dur2],[c3,dur3] ].forEach(([c,dur],idx)=>{
+    function loop(){
+      c.style.transition='none'; c.style.left = -400 - Math.random()*100 + 'px';
+      setTimeout(()=> { c.style.transition = `left ${dur}s linear`; c.style.left = (window.innerWidth + 200 + idx*60) + 'px'; }, 80);
+    }
+    loop();
+    c.addEventListener('transitionend', ()=> setTimeout(loop, 520 + Math.random()*900));
+  });
+}
+
+/* Re-declare animateBugs actual to ensure closure access */
+function animateBugs(){
+  const bee1 = document.getElementById('bee1'), bee2 = document.getElementById('bee2'), but1 = document.getElementById('but1'), bird1=document.getElementById('bird1');
+  const W = window.innerWidth, H = window.innerHeight;
+  function moveAlong(el, pts, dur, off=0){
+    let start=null;
+    function step(ts){
+      if(!start) start=ts;
+      const t = ((ts-start+off)%dur)/dur;
+      const n=pts.length; const idx=t*(n-1); const i=Math.floor(idx); const f=idx-i;
+      const a=pts[i% n], b=pts[(i+1)%n];
+      const x = a[0]*(1-f)+b[0]*f, y = a[1]*(1-f)+b[1]*f;
+      el.style.left = x + 'px'; el.style.top = y + 'px';
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  moveAlong(bee1, [[50,120],[180,90],[350,160],[520,120],[700,160],[900,110],[W-120,160]], 9000, 0);
+  moveAlong(bee2, [[320,200],[420,160],[560,240],[740,200],[920,260],[W-260,240]], 11000, 700);
+  moveAlong(but1, [[160,120],[220,80],[320,110],[420,74],[560,140],[720,98],[820,120]], 9500, 300);
+  moveAlong(bird1, [[-40,60],[180,40],[420,80],[680,30],[W+60,70]], 12000, 200);
+}
+
+/* ---------- Petals start/stop wrappers ---------- */
+function startPetals(){ if(fallingOn) startPetalsInternal(); }
+function startPetalsInternal(){
+  const layer = document.getElementById('petalsLayer');
+  petalInterval = setInterval(()=>{
+    const p = document.createElement('div'); p.className='petal-fall';
+    const sx = Math.random()*window.innerWidth;
+    p.style.left = sx + 'px'; p.style.top = (-40 - Math.random()*30)+'px';
+    p.style.transform = `rotate(${Math.random()*360}deg)`;
+    layer.appendChild(p);
+    const dur = 4800 + Math.random()*4200;
+    const endY = window.innerHeight - 140 - Math.random()*60;
+    p.animate([{transform:p.style.transform, opacity:1}, {transform:`translateY(${endY}px) rotate(${Math.random()*360}deg)`, opacity:0.85}], {duration:dur, easing:'linear'});
+    setTimeout(()=> p.remove(), dur+80);
+  }, 320);
+}
+function stopPetalsInternal(){ clearInterval(petalInterval); document.getElementById('petalsLayer').innerHTML=''; }
+
+/* ---------- finally: layoutFlowers definition placed again for safety ---------- */
+function layoutFlowers(count=FLOWER_COUNT){
+  flowersContainer.innerHTML='';
+  for(let i=0;i<count;i++){
+    const left = (i/(count-1))*92 + rand(-3.5,3.5);
+    const bottom = rand(38,120);
+    const scale = rand(MIN_SCALE, MAX_SCALE);
+    const sway = rand(3.2,5.6);
+    makeFlower(i+1,left,bottom,scale,sway);
+  }
+}
+
+/* ---------- expose some actions to global for console tinkering ---------- */
+window._layoutFlowers = layoutFlowers;
+window._startAudio = ()=>{ initAudio(); playAmbient(); document.getElementById('playBtn').textContent='⏸'; };
+
+/* ---------- end of script ---------- */
+</script>
+</body>
+</html>
