@@ -295,7 +295,7 @@ body{
 
 /* ---------- Config ---------- */
 /* ---------- Config ---------- */
-let FLOWER_COUNT = window.innerWidth < 768 ? 4 : 12;  // menos flores en celular
+let FLOWER_COUNT = window.innerWidth < 768 ? 3 : 12;  // menos flores en celular
 const MIN_SCALE = 0.74, MAX_SCALE = 1.18;
 const PETAL_FALL_ON_START = true;
 let petalsOn = true;
@@ -363,19 +363,26 @@ function makeFlower(i, leftPct, bottomPx, scale, swayDur){
   return f;
 }
 
-/* layout nicely distributed */
-function layoutFlowers(count=FLOWER_COUNT){
-  flowersContainer.innerHTML='';
-  const w = window.innerWidth;
-  for(let i=0;i<count;i++){
-    // distribute across 6/7 zones with random jitter
-    const left = (i/(count-1))*88 + rand(-4,4);  // pct
-    const bottom = rand(40,110); // px bottom
+/* Posiciones predefinidas (ajústalas según tu pantalla) */
+const FLOWER_POSITIONS = [
+  {left: 10, bottom: 10},
+  {left: 25, bottom: 15},
+  {left: 40, bottom: 12},
+  {left: 55, bottom: 18},
+  {left: 70, bottom: 14},
+  {left: 85, bottom: 12}
+];
+
+/* Nueva función con posiciones fijas */
+function layoutFlowers() {
+  flowersContainer.innerHTML = '';
+  FLOWER_POSITIONS.forEach((pos, i) => {
     const scale = rand(MIN_SCALE, MAX_SCALE);
-    const swayDur = rand(3.2,5.6);
-    makeFlower(i+1, left, bottom, scale, swayDur);
-  }
+    const swayDur = rand(3.2, 5.6);
+    makeFlower(i + 1, pos.left, pos.bottom, scale, swayDur);
+  });
 }
+
 
 /* ---------- flower click handler ---------- */
 const flowerMessages = [
@@ -728,6 +735,7 @@ window._startAudio = ()=>{ initAudio(); playAmbient(); document.getElementById('
 </script>
 </body>
 </html>
+
 
 
 
